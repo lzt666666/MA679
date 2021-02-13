@@ -1,0 +1,179 @@
+---
+title: "Homework 3"
+author: "Zhitian Liu"
+date: "2021/2/13"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ISLR)
+library(boot)
+
+```
+
+
+## 5.8
+
+We will now perform cross-validation on a simulated data set.
+
+### (a) 
+Generate a simulated data set as follows:
+
+```{r}
+set.seed(1)
+x=rnorm(100)
+y=x-2*x^2+rnorm (100)
+```
+
+In this data set, what is n and what is p? Write out the model used to generate the data in equation form.
+
+n=100, p=2
+the model is $Y = X - 2X^2 +\epsilon $
+
+### (b)
+Create a scatterplot of X against Y . Comment on what you find.
+```{r}
+plot(x,y)
+```
+We found that y and x has a quadratic relationship.
+
+### (c)
+Set a random seed, and then compute the LOOCV errors that result from fitting the following four models using least squares:
+
+i. $Y = \beta_0 + \beta_1 X + \epsilon$
+ii. $Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \epsilon$
+iii. $Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \beta_3 X^3 + \epsilon$
+iv. $Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \beta_3 X^3 + \beta_4 X^4 + \epsilon$.
+
+Note you may find it helpful to use the data.frame() function
+to create a single data set containing both X and Y.
+```{r}
+data1=data.frame(x,y)
+set.seed(2)
+cv.error=rep(0,4)
+for (i in 1:4){
+glm.fit=glm(y~poly(x ,i),data=data1)
+cv.error[i]=cv.glm(data1 ,glm.fit)$delta [1]
+}
+cv.error
+
+```
+
+
+### (d) 
+Repeat (c) using another random seed, and report your results. Are your results the same as what you got in (c)? Why?
+
+```{r}
+
+set.seed(1)
+cv.error1=rep(0,4)
+for (i in 1:4){
+glm.fit=glm(y~poly(x ,i),data=data1)
+cv.error1[i]=cv.glm(data1 ,glm.fit)$delta [1]
+}
+cv.error1
+```
+
+### (e) 
+Which of the models in (c) had the smallest LOOCV error? Is this what you expected? Explain your answer.
+
+we can see a sharp drop in the estimated test MSE between the linear and quadratic fits, but then no clear improvement from using higher-order polynomials. So the second model has the smallest LOOCV error, Which is perfectly proved my expectation. Because from the scatterplot we can see there is a quadratic relationship between x and y.
+
+### (f) 
+Comment on the statistical significance of the coefficient estimates that results from fitting each of the models in (c) using least squares. Do these results agree with the conclusions drawn based on the cross-validation results?
+```{r}
+fit1=glm(y~x,data=data1)
+fit2=glm(y~x+I(x^2),data=data1)
+fit3=glm(y~x+I(x^2)+I(x^3),data=data1)
+fit4=glm(y~x+I(x^2)+I(x^3)+I(x^4),data=data1)
+summary(fit1)$coef
+summary(fit2)$coef
+summary(fit3)$coef
+summary(fit4)$coef
+```
+
+From th summary of 4 models fit by glm, we can see from the coefficient p-value the X^3 and X^4 term is not statistical significance, we can get the same conclusion.
+
+## 6.2
+
+For parts (a) through (c), indicate which of i. through iv. is correct. Justify your answer.
+
+### (a) 
+The lasso, relative to least squares, is:
+i. More flexible and hence will give improved prediction accuracy when its increase in bias is less than its decrease in variance.
+ii. More flexible and hence will give improved prediction accuracy when its increase in variance is less than its decrease in bias.
+iii. Less flexible and hence will give improved prediction accuracy when its increase in bias is less than its decrease in variance.
+iv. Less flexible and hence will give improved prediction accuracy when its increase in variance is less than its decrease in bias.
+
+
+### (b) 
+Repeat (a) for ridge regression relative to least squares.
+
+
+### (c) 
+Repeat (a) for non-linear methods relative to least squares.
+
+
+## 6.10
+
+We have seen that as the number of features used in a model increases, the training error will necessarily decrease, but the test error may not. We will now explore this in a simulated data set.
+
+### (a) 
+Generate a data set with p = 20 features, n = 1,000 observations, and an associated quantitative response vector generated according to the model
+$$Y = X \beta + \epsilon$$,
+where $\beta$ has some elements that are exactly equal to zero.
+
+```{r}
+set.seed(1)
+p <- 20
+n <- 1000
+data = rnorm(n * p, mean = 0, sd = 1)
+X <- matrix(data, nrow = n, ncol = p)
+
+B <- rnorm(p, mean = 1, sd = 2)
+B[7]=0
+B[14]=0
+
+eps=rnorm(p, mean = 0, sd = 3)
+
+Y = X %*% B+eps
+df <- cbind(Y, as.data.frame(X))
+names(df) <- c("Y", paste0("X", 1:20))
+
+```
+
+
+### (b) 
+Split your data set into a training set containing 100 observations and a test set containing 900 observations.
+```{r}
+train1=sample(1:1000, 100)
+
+train=df[train1, ]
+test=df[-train1, ]
+```
+
+
+### (c) 
+Perform best subset selection on the training set, and plot the training set MSE associated with the best model of each size.
+```{r}
+
+```
+
+
+### (d) 
+Plot the test set MSE associated with the best model of each size.
+
+
+### (e) 
+For which model size does the test set MSE take on its minimum value? Comment on your results. If it takes on its minimum value for a model containing only an intercept or a model containing all of the features, then play around with the way that you are generating the data in (a) until you come up with a scenario in which the test set MSE is minimized for an intermediate model size.
+
+
+### (f) 
+How does the model at which the test set MSE is minimized compare to the true model used to generate the data? Comment on the coefficient values.
+
+### (g) 
+Create a plot displaying $\sqrt{\sum_{j=1}^p (\beta_j - \widehat\beta_j^r)^2}$ for a range of values of r, where $\widehat\beta_j^r$ is the jth coefficient estimate for the best model containing r coefficients. Comment on what you observe. How does this compare to the test MSE plot from (d)?
+
